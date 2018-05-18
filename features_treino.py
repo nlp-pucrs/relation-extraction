@@ -50,9 +50,11 @@ def main(name):
 
         aux = line.strip().split("\t")
 
-        #print("Frase original -",aux[0])
-        #print("EN1 -", aux[2])
-        #print("EN2 -",aux[7])
+        '''print("Frase original -",aux[0])
+        print("EN1 -", aux[2])
+        print("EN2 -",aux[7])'''
+
+        # PRÉ-PROCESSAMENTO
 
         frase = aux[0]
         sentence = aux[0].replace("'", '"').replace(":", "#").replace(";", "$").replace(".", "%")
@@ -76,9 +78,9 @@ def main(name):
         
         sentence = sentence.replace(en1, "en1").replace(en2, "en2")
         
-        #print("Frase modificada -",sentence, "\n")
-        #ajuda = "Sem relação" if rel == [''] else " ".join(rel)
-        #print(ajuda, "\n")
+        '''print("Frase modificada -",sentence, "\n")
+        ajuda = "Sem relação" if rel == [''] else " ".join(rel)
+        print(ajuda, "\n")'''
 
         aux_rel = []
         aux_features = []
@@ -110,6 +112,8 @@ def main(name):
 
             elif check_en == 0: continue
 
+            # CLASSE
+            
             if count_rel == len(rel): classification = 0
             
             elif t.lexeme == rel[count_rel]: 
@@ -118,6 +122,8 @@ def main(name):
                 count_rel += 1
 
             else: classification = 0
+
+            # FEATURES
             
             aux = t.synchunk if len(t.synchunk) <= 2 else t.synchunk[2:]
 
@@ -194,7 +200,7 @@ def main(name):
 
             aux_features.append(vector)
 
-            #print(classification, t.lexeme)
+            '''print(classification, t.lexeme)'''
             
         for x in aux_features:
 
@@ -203,7 +209,7 @@ def main(name):
 
             words.append(x)
             
-        #print("\n")
+        '''print("\n")'''
 
         en1 = en1.replace("%", ".")
         en2 = en2.replace("%", ".")
