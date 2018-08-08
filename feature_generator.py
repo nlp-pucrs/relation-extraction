@@ -50,12 +50,35 @@ def main(name):
 
         aux = line.strip().split("\t")
 
+        train_set = False
+
+        if(len(aux) > 7):
+            train_set = True
+
+        '''print("Frase original -",aux[0])
+        print("EN1 -", aux[2])
+        print("EN2 -",aux[7])'''
+
+        # PRÉ-PROCESSAMENTO
+
         frase = aux[0]
         sentence = aux[0].replace("'", '"').replace(":", "#").replace(";", "$").replace(".", "%")
-        en1 = aux[2].replace("=", "_").replace(".", "%")
-        en2 = aux[5].replace("=", "_").replace(".", "%")
+        if(train_set):
+            loc = 6
+            en1 = aux[2].replace("=", "_").replace(".", "%")
+            rel_num = aux[4].split(",")
+            rel = aux[5].split(" ")
+            en2 = aux[7].replace("=", "_").replace(".", "%")
+        else:
+            loc = 4
+            en1 = aux[2].replace("=", "_").replace(".", "%")
+            en2 = aux[5].replace("=", "_").replace(".", "%")
+        
+        if(train_set):
+            if rel_num[0] == 'None': rel_start = 0
+            else: rel_start = int(rel_num[0])
 
-        if int(aux[1].split(",")[0]) > int(aux[4].split(",")[0]): 
+        if int(aux[1].split(",")[0]) > int(aux[loc].split(",")[0]): 
             
             small = en2
             big = en1
@@ -66,11 +89,20 @@ def main(name):
             big = en2
         
         sentence = sentence.replace(en1, "en1").replace(en2, "en2")
+        
+        '''print("Frase modificada -",sentence, "\n")
+        ajuda = "Sem relação" if rel == [''] else " ".join(rel)
+        print(ajuda, "\n")'''
 
+        
         aux_features = []
+        aux_lexeme = []
         pos = ""
         check_en = 0
-        aux_lexeme = []
+
+        if(train_set):
+            aux_rel = []
+            count_rel = 0
         
         analyzer = cogroo.analyze(sentence).sentences[0].tokens
         words = []
@@ -94,6 +126,20 @@ def main(name):
                     break
 
             elif check_en == 0: continue
+
+            # CLASSE
+            
+            if(train_set):
+                if count_rel == len(rel): classification = 0
+                
+                elif t.lexeme == rel[count_rel]: 
+
+                    classification = 1
+                    count_rel += 1
+
+                else: classification = 0
+
+            # FEATURES
             
             aux = t.synchunk if len(t.synchunk) <= 2 else t.synchunk[2:]
 
@@ -161,13 +207,18 @@ def main(name):
 
             vector.insert(0, t.lexeme)
 
+            if(train_set):
+                vector.insert(0, str(classification))
+
             aux = line.strip().split("\t")
 
-            if aux[3] == "PER" or aux[6] == "PER": vector.append("O-PER")
-            elif aux[3] == "PLC" or aux[6] == "PLC": vector.append("O-PLC")
+            if aux[3] == "PER" or aux[loc+2] == "PER": vector.append("O-PER")
+            elif aux[3] == "PLC" or aux[loc+2] == "PLC": vector.append("O-PLC")
             else: vector.append("O-O")
 
             aux_features.append(vector)
+
+            '''print(classification, t.lexeme)'''
             
         for x in aux_features:
 
@@ -176,15 +227,19 @@ def main(name):
 
             words.append(x)
             
+        '''print("\n")'''
+
         en1 = en1.replace("%", ".")
         en2 = en2.replace("%", ".")
         sentences.append([words, frase, en1, en2])
 
     # SALVA OS VETORES DE FEATURES
 
-    print(sentences)
 
-    with gzip.open('features_teste.txt.gz', 'wb') as f: pickle.dump(sentences, f)
+    if(train_set):
+        with gzip.open('features_treino.txt.gz', 'wb') as f: pickle.dump(sentences, f)
+    else:
+        with gzip.open('features_teste.txt.gz', 'wb') as f: pickle.dump(sentences, f)
 
 try: sys.argv[1]
 except: 
