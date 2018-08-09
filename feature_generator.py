@@ -46,18 +46,19 @@ def consecutive(analyzer, vector, idx, x, y):
 
 def main(name):
 
+    sys.tracebacklimit = None
+
+
     file = open(name, "r")
 
-    #subprocess.call(['gnome-terminal', '-x', os.path.dirname(os.path.realpath(sys.argv[0])), ' && java -jar cogroo4py.jar'])
+    path = 'java -jar ' + str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/cogroo4py.jar'
 
-    path = 'java -jar ' + str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/cogroo4py.jar&'
-
-    #Check this whole thing later. Must be a better way
-    proc = subprocess.Popen(path, shell=True)
+    ##Check this whole thing later. Must be a better way##
+    proc = subprocess.Popen(['gnome-terminal', '-e', path])
     pobj = psutil.Process(proc.pid)
-    #print(proc.pid)
+    #print(pobj.pid)
 
-    time.sleep(10)
+    time.sleep(15)
 
     cogroo = Cogroo.Instance()
     sentences = []
@@ -224,8 +225,6 @@ def main(name):
             else: vector.append("O-O")
 
             aux_features.append(vector)
-
-            '''print(classification, t.lexeme)'''
             
         for x in aux_features:
 
@@ -242,18 +241,31 @@ def main(name):
 
     # SALVA OS VETORES DE FEATURES
 
+    cogroo._end_gateway()
+
     if(train_set):
         with gzip.open('features_treino.txt.gz', 'wb') as f: pickle.dump(sentences, f)
     else:
         with gzip.open('features_teste.txt.gz', 'wb') as f: pickle.dump(sentences, f)
 
-    # Check for better solution thanm +1. Race conditions may apply to screw with this.
-    os.kill(proc.pid+1, signal.SIGTERM)
+    proc_iter = psutil.process_iter(attrs=["pid", "cmdline"])
+    for p in proc_iter:
+        process_path = p.info["cmdline"]
+        if(len(process_path) == 3 and process_path[2] == (str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/cogroo4py.jar')):
+                os.kill(p.info["pid"], signal.SIGKILL)
+            
 
-try: sys.argv[1]
+
+try: 
+    sys.argv[1]
+
 except: 
-    
-    print("Informe o arquivo de entrada como parâmetro")
+    print("Necessário argumento. Ver Exemplo em readme.md.")
+    sys.exit(1)
+try:
+    main(sys.argv[1])
+except:
+    print("Erro.")
     sys.exit(1)
 
-main(sys.argv[1])
+print("Features geradas com sucesso.")
