@@ -1,6 +1,11 @@
 import pickle
 import gzip
 import sys
+import subprocess
+import os
+import time
+import psutil
+import signal
 
 from cogroo_interface import Cogroo
 from math import fabs
@@ -43,6 +48,17 @@ def main(name):
 
     file = open(name, "r")
 
+    #subprocess.call(['gnome-terminal', '-x', os.path.dirname(os.path.realpath(sys.argv[0])), ' && java -jar cogroo4py.jar'])
+
+    path = 'java -jar ' + str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/cogroo4py.jar&'
+
+    #Check this whole thing later. Must be a better way
+    proc = subprocess.Popen(path, shell=True)
+    pobj = psutil.Process(proc.pid)
+    #print(proc.pid)
+
+    time.sleep(10)
+
     cogroo = Cogroo.Instance()
     sentences = []
 
@@ -54,10 +70,6 @@ def main(name):
 
         if(len(aux) > 7):
             train_set = True
-
-        '''print("Frase original -",aux[0])
-        print("EN1 -", aux[2])
-        print("EN2 -",aux[7])'''
 
         # PRÉ-PROCESSAMENTO
 
@@ -89,11 +101,6 @@ def main(name):
             big = en2
         
         sentence = sentence.replace(en1, "en1").replace(en2, "en2")
-        
-        '''print("Frase modificada -",sentence, "\n")
-        ajuda = "Sem relação" if rel == [''] else " ".join(rel)
-        print(ajuda, "\n")'''
-
         
         aux_features = []
         aux_lexeme = []
@@ -235,11 +242,13 @@ def main(name):
 
     # SALVA OS VETORES DE FEATURES
 
-
     if(train_set):
         with gzip.open('features_treino.txt.gz', 'wb') as f: pickle.dump(sentences, f)
     else:
         with gzip.open('features_teste.txt.gz', 'wb') as f: pickle.dump(sentences, f)
+
+    # Check for better solution thanm +1. Race conditions may apply to screw with this.
+    os.kill(proc.pid+1, signal.SIGTERM)
 
 try: sys.argv[1]
 except: 
