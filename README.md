@@ -3,7 +3,7 @@
 # Pré-requisitos
  - Java Runtime Environment 8+
  - interpretador Python 3.x
- - Pacote py4j, scikit-learn, sklearn-crfsuite, scipy, pandas (*pip3 install py4j scikit-learn sklearn-crfsuite scipy pandas*)
+ - Pacote py4j, scikit-learn, sklearn-crfsuite, scipy, pandas, argparse, psutil (*pip3 install py4j scikit-learn sklearn-crfsuite scipy pandas argparse psutil*)
 
 
 # Execução
