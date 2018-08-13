@@ -44,7 +44,7 @@ def consecutive(analyzer, vector, idx, x, y):
         
         for x in range(4): vector.append("_")
 
-def main(name):
+def generate_features(name):
 
     sys.tracebacklimit = None
 
@@ -53,7 +53,7 @@ def main(name):
 
     path = 'java -jar ' + str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/cogroo4py.jar'
 
-    ##Check this whole thing later. Must be a better way##
+    ##Have to make it work for multiple platforms.
     proc = subprocess.Popen(['gnome-terminal', '-e', path])
     pobj = psutil.Process(proc.pid)
     #print(pobj.pid)
@@ -252,20 +252,4 @@ def main(name):
     for p in proc_iter:
         process_path = p.info["cmdline"]
         if(len(process_path) == 3 and process_path[2] == (str(os.path.dirname(os.path.realpath(sys.argv[0]))) + '/cogroo4py.jar')):
-                os.kill(p.info["pid"], signal.SIGKILL)
-            
-
-
-try: 
-    sys.argv[1]
-
-except: 
-    print("Necessário argumento. Ver Exemplo em readme.md.")
-    sys.exit(1)
-try:
-    main(sys.argv[1])
-except:
-    print("Erro.")
-    sys.exit(1)
-
-print("Features geradas com sucesso.")
+                os.kill(p.info["pid"], signal.SIGTERM)
