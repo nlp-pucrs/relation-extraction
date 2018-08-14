@@ -7,58 +7,50 @@
 
 
 # Execução
-O Relp++ necessita da execução paralela da ferramenta CoGroo4py, disponível no site: https://github.com/gpassero/cogroo4py.
 
-Esta ferramenta já foi proporcionada no pacote de instalação do Relp++ e para executá-la é necessário somente utilizar a seguinte linha de comando na pasta principal:
-    * java -jar cogroo4py.jar
-
-# Execução para Treino:
-
-- Gerador de Features para Treino (features_treino.py)
+- Gerar Features para Treino
 
     Argumentos de Entrada:
-   	 arquivo com as sentenças (O formato do arquivo deve estar como em Exemplos/texto_treino.txt)
+     arquivo com as sentenças (O formato do arquivo deve estar como em Exemplos/texto_treino.txt)
 
     Argumentos de Saída:
-   	 features de treino (features_treino.txt.gz - O arquivo é substituído a cada execução)
+     features de treino (features_treino.txt.gz - O arquivo é substituído a cada execução)
 
     Exemplo de Uso:
-   	* python3 features_treino.py Exemplo/texto_treino.txt
+    * python3 relp++ -fg Exemplo/texto_treino.txt
 
-- Gerador do Modelo (crf_treino.py)
+- Gerar Modelo CRF (crf_treino.py)
 
     Argumento de Entrada:
-   	 features de treino (features_treino.txt.gz)
-    
+     features de treino (features_treino.txt.gz)
+
     Argumentos de Saída:
-   	 modelo treinado (modelo_treinado.txt.gz) 
+     modelo treinado (modelo_treinado.txt.gz) 
             resultado da classificação (saida_treino.txt)
 
     Exemplo de uso:
-   	*  python3 crf_treino.py features_treino.txt.gz
+    *  python3 relp++.py -crfgen features_treino.txt.gz
 
-# Execução para Teste:
-
-- Gerador de Features para Teste (features_teste.py)
+- Gerar Features para Teste
 
     Argumento de Entrada:
-   	 arquivo com as sentenças (O formato do arquivo deve estar como em Exemplos/texto_teste.txt)
-    
+     arquivo com as sentenças (O formato do arquivo deve estar como em Exemplos/texto_teste.txt)
+
     Argumento de Saída:
-   	 features de teste (features_teste.txt.gz)
+     features de teste (features_teste.txt.gz)
 
     Exemplo de Uso:
-   	* python3 features_teste.py Exemplo/texto_teste.txt
+    * python3 relp++.py -fg Exemplo/texto_teste.txt
 
-- Teste do Modelo Treinado (crf_teste.py)
+- Teste do Modelo Treinado
 
     Argumento de Entrada:
-   	 features de teste (features_teste.txt.gz)
-   	 modelo treinado (modelo_treinado.txt.gz)
+     features de teste (features_teste.txt.gz)
+     modelo treinado (modelo_treinado.txt.gz)
     
     Argumento de Saída:
-   	 resultado da classificação de teste (saida_teste.txt)
+     resultado da classificação de teste (saida_teste.txt)
 
     Exemplo de Uso:
-   	* python3 crf_teste.py features_teste.txt.gz modelo_padrao.txt.gz
+    * python3 relp++.py -crf features_teste.txt.gz modelo_padrao.txt.gz
 
