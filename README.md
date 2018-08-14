@@ -19,7 +19,7 @@
     Exemplo de Uso:
     * python3 relp++ -fg Exemplo/texto_treino.txt
 
-- Gerar Modelo CRF (crf_treino.py)
+- Gerar Modelo CRF
 
     Argumento de Entrada:
      features de treino (features_treino.txt.gz)
@@ -42,7 +42,7 @@
     Exemplo de Uso:
     * python3 relp++.py -fg Exemplo/texto_teste.txt
 
-- Teste do Modelo Treinado
+- Utilizar Modelo Treinado para Extração de Relações
 
     Argumento de Entrada:
      features de teste (features_teste.txt.gz)
