@@ -6,6 +6,7 @@ import os
 import time
 import psutil
 import signal
+import re
 
 from cogroo_interface import Cogroo
 from math import fabs
@@ -48,6 +49,9 @@ def generate_features(name):
 
     sys.tracebacklimit = None
 
+    #File que guarda entrada do gerador
+    f = open("entrada.txt","w+")
+    
 
     file = open(name, "r")
 
@@ -56,7 +60,6 @@ def generate_features(name):
     ##Have to make it work for multiple platforms.
     proc = subprocess.Popen(['gnome-terminal', '-e', path])
     pobj = psutil.Process(proc.pid)
-    #print(pobj.pid)
 
     time.sleep(15)
 
@@ -66,6 +69,12 @@ def generate_features(name):
     for idx, line in enumerate(file):
 
         aux = line.strip().split("\t")
+
+        #Sentença original de entrada e entidades nomeadas
+        f.write("Frase original -" + str(aux[0]) + "\n")
+        f.write("EN1 -" + str(aux[2]) + "\n")
+        f.write("EN2 -" + str(aux[7]) + "\n")
+        
 
         train_set = False
 
@@ -78,14 +87,16 @@ def generate_features(name):
         sentence = aux[0].replace("'", '"').replace(":", "#").replace(";", "$").replace(".", "%")
         if(train_set):
             loc = 6
-            en1 = aux[2].replace("=", "_").replace(".", "%")
+            en1ind = aux[1]
+            en2ind = aux[6]
+            en1 = aux[2].replace("=", "_").replace(".", "%").replace("'", '"').replace(":", "#").replace(";", "$")
             rel_num = aux[4].split(",")
             rel = aux[5].split(" ")
-            en2 = aux[7].replace("=", "_").replace(".", "%")
+            en2 = aux[7].replace("=", "_").replace(".", "%").replace("'", '"').replace(":", "#").replace(";", "$")
         else:
             loc = 4
-            en1 = aux[2].replace("=", "_").replace(".", "%")
-            en2 = aux[5].replace("=", "_").replace(".", "%")
+            en1 = aux[2].replace("=", "_").replace(".", "%").replace("'", '"').replace(":", "#").replace(";", "$")
+            en2 = aux[5].replace("=", "_").replace(".", "%").replace("'", '"').replace(":", "#").replace(";", "$")
         
         if(train_set):
             if rel_num[0] == 'None': rel_start = 0
@@ -100,9 +111,62 @@ def generate_features(name):
 
             small = en1
             big = en2
+
+
+        applebits1 = [m.start() for m in re.finditer(en1, sentence)]
+        applebits2 = [m.start() for m in re.finditer(en2, sentence)]
+        en1ind = en1ind.split(',')[0]
+        en2ind = en2ind.split(',')[0]
+        minDist = -1
+        index_change = -1
+        sentence_words = sentence.split(" ")
+        print("en1")
+        for ab in applebits1:
+            index_this = len(sentence[:ab].split(' '))
+            dist = abs(int(en1ind) - index_this)
+            if minDist == -1:
+                minDist = dist
+                index_change = index_this -1
+            elif minDist > dist:
+                minDist = dist
+                index_change = index_this - 1
+        sentence_words[index_change] = sentence_words[index_change].replace(en1, 'en1')
+        print(sentence_words)
+        minDist = -1
+        index_change = -1
+        print("en2")
+        for ab in applebits2:
+            index_this = len(sentence[:ab].split(' '))
+            dist = abs(int(en2ind) - index_this)
+            if minDist == -1:
+                minDist = dist
+                index_change = index_this - 1
+            elif minDist > dist:
+                minDist = dist
+                index_change = index_this - 1
+        sentence_words[index_change] = sentence_words[index_change].replace(en2, 'en2')
+        print(sentence_words)
+        '''
+        print(sentence[:int(en1ind)].split(' '))
+        print(len(sentence[:int(en1ind)].split(' ')))
+        print(en1ind)
+
+        print([m.start() for m in re.finditer(en2, sentence)])
+        print(len(sentence[:int(en2ind)].split(' ')))
+        print(en2ind)
+        '''
+        sentence = " ".join(sentence_words)
+        if sentence.find('en1') == -1:
+        	sentence = sentence.replace(en1, "en1")
+        if sentence.find('en2') == -1:
+        	sentence = sentence.replace(en2, "en2")
+
+        #Sentença processada para processamento de features e relação entre entidades
+        f.write("Frase modificada -" + str(sentence) + "\n")
+        ajuda = "Sem relação" if rel == [''] else " ".join(rel)
+        f.write(str(ajuda) + "\n")
         
-        sentence = sentence.replace(en1, "en1").replace(en2, "en2")
-        
+
         aux_features = []
         aux_lexeme = []
         pos = ""
@@ -121,16 +185,16 @@ def generate_features(name):
 
                 check_en = 1
                 aux_lexeme.append(t.lexeme)
-                t.lemma = small.replace("%", ".")
-                t.lexeme = small.replace("%", ".")
+                t.lemma = small.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
+                t.lexeme = small.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
                 continue
 
             elif check_en == 1 and (t.lexeme == "en1" or t.lexeme == "en2"):
                 
                 if not t.lexeme == aux_lexeme[0]:
 
-                    t.lemma = big.replace("%", ".")
-                    t.lexeme = big.replace("%", ".")
+                    t.lemma = big.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
+                    t.lexeme = big.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
                     break
 
             elif check_en == 0: continue
@@ -140,12 +204,12 @@ def generate_features(name):
             if(train_set):
                 if count_rel == len(rel): classification = 0
                 
-                elif t.lexeme == rel[count_rel]: 
-
+                elif t.lexeme == rel[count_rel].replace("=", "_").replace(".", "%").replace("'", '"').replace(":", "#").replace(";", "$"):
                     classification = 1
                     count_rel += 1
 
-                else: classification = 0
+                else: 
+                    classification = 0
 
             # FEATURES
             
@@ -225,24 +289,34 @@ def generate_features(name):
             else: vector.append("O-O")
 
             aux_features.append(vector)
+
+            #Classificação encontrada
+            f.write(str(classification) + str(t.lexeme) + "\n")
             
+
         for x in aux_features:
 
             x.append(pos[1:])
             x.append(str(len(pos[1:].split(" "))))
 
             words.append(x)
-            
-        '''print("\n")'''
+           
+        #Separação entre entradas
+        f.write("\n")
+        
 
-        en1 = en1.replace("%", ".")
-        en2 = en2.replace("%", ".")
+        en1 = en1.replace("%", ".").replace("'", '"').replace(":", "#").replace(";", "$")
+        en2 = en2.replace("%", ".").replace("'", '"').replace(":", "#").replace(";", "$")
         sentences.append([words, frase, en1, en2])
 
     # SALVA OS VETORES DE FEATURES
 
     cogroo._end_gateway()
 
+    #Fecha arquivo para escrita de entradas
+    f.close()
+    
+    
     if(train_set):
         with gzip.open('features_treino.txt.gz', 'wb') as f: pickle.dump(sentences, f)
     else:
