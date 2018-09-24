@@ -214,7 +214,7 @@ def generate_features(name):
 		words = []
 		for idx, t in enumerate(analyzer):
 
-			if check_en == 0 and (t.lexeme == "en1" or t.lexeme == "en2"):
+			if check_en == 0 and (t.lexeme.find("en1") != -1 or t.lexeme.find("en2") != -1):
 
 				check_en = 1
 				aux_lexeme.append(t.lexeme)
@@ -222,8 +222,8 @@ def generate_features(name):
 				t.lexeme = small.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
 				continue
 
-			elif check_en == 1 and (t.lexeme == "en1" or t.lexeme == "en2"):
-				
+			elif check_en == 1 and (t.lexeme.find("en1") != -1 or t.lexeme.find("en2") != -1):
+
 				if not t.lexeme == aux_lexeme[0]:
 
 					t.lemma = big.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
@@ -233,12 +233,12 @@ def generate_features(name):
 			elif check_en == 0: continue
 
 			# CLASSE
-			
+			t. lexeme = t.lexeme.replace("%", ".").replace('"', "'").replace("#", ":").replace("$", ";")
 			if(train_set):
 				if count_rel == len(rel): classification = 0
 				
 				for cr in range(len(rel)):
-					if t.lexeme == rel[cr].replace("=", "_").replace(".", "%").replace("'", '"').replace(":", "#").replace(";", "$"):
+					if t.lexeme == rel[cr]:
 						if new_rel[cr][1] == 0:
 							classification = 1
 							count_rel += 1
