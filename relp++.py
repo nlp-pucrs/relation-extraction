@@ -1,16 +1,24 @@
-import sys, traceback, os
+import sys, traceback, os, argparse
 import feature_generator
 import crf
-import argparse
+import generate_input_file
 
 parser = argparse.ArgumentParser(description="Relp++ relation extractor")
 parser.add_argument("-fg", "--featuregenerator", metavar=('FORMATED_TEXT'), help="Gera features para uso nos geradores de modelo e testes.")
 parser.add_argument("-crfgen", "--crfmodelgenerator", metavar=('FEATURES'), help="Gera um modelo de aprendizado de máquina CRF utilizando features indicadas.")
-#parser.add_argument("-ftr", "--featurestrain", help="Indica local de features para treino já existentes.")
-#parser.add_argument("-fts", "--featurestest", metavar=('FEATURES'), help="Indica local de features para teste já existentes.")
+parser.add_argument("-gi", "--generateinput", help="A partir de um arquivo xml no formato HAREM, cria entrada para extração de relações.")
 parser.add_argument("-crf", nargs=2, metavar=('FEATURES', 'MODEL'), help="Extrai relações dos textos")
 
 args = parser.parse_args()
+
+try:
+	if args.generateinput:
+		generate_input_file.generate_input(args.generateinput)
+		print('Arquivo de input criado com sucesso.')
+except:
+	print("\nErro na geração de arquivo de input.\n")
+	traceback.print_exc(file=sys.stdout)
+	sys.exit(1)
 
 try:
 	if args.featuregenerator:
